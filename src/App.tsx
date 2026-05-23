@@ -1,19 +1,27 @@
-import { Button } from "@/components/ui/button"
+import { Header } from "@/components/header"
+import { Orderbook } from "@/components/orderbook"
+import { TradeInterface } from "@/components/trade-interface"
+import { MarketStatus } from "@/components/market-status"
+import { OrderManagement } from "@/components/order-management"
+import { Footer } from "@/components/footer"
 
 export function App() {
   return (
-    <div className="flex min-h-svh p-6">
-      <div className="flex max-w-md min-w-0 flex-col gap-4 text-sm leading-loose">
-        <div>
-          <h1 className="font-medium">Project ready!</h1>
-          <p>You may now add components and start building.</p>
-          <p>We&apos;ve already added the button component for you.</p>
-          <Button className="mt-2">Button</Button>
+    <div className="flex min-h-svh flex-col">
+      <Header />
+      <main className="flex flex-1 min-h-0">
+        <div className="flex-1 min-w-0">
+          <Orderbook />
         </div>
-        <div className="font-mono text-xs text-muted-foreground">
-          (Press <kbd>d</kbd> to toggle dark mode)
+        <div className="flex-2 min-w-0">
+          <TradeInterface />
         </div>
-      </div>
+        <div className="flex-1 min-w-0">
+          <MarketStatus />
+        </div>
+      </main>
+      <OrderManagement />
+      <Footer />
     </div>
   )
 }
