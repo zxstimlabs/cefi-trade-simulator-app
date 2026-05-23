@@ -9,6 +9,12 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      crypto: path.resolve(__dirname, "./src/lib/empty.ts"),
+      https: path.resolve(__dirname, "./src/lib/empty.ts"),
+      events: path.resolve(__dirname, "./node_modules/events/events.js"),
     },
+  },
+  define: {
+    global: "globalThis",
   },
 })

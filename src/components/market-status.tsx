@@ -1,39 +1,19 @@
 import { MoreHorizontal } from "lucide-react"
 
+import {
+  useEthUsdtMarketData,
+  type LiveTrade,
+} from "@/hooks/use-eth-usdt-market-data"
+
 type Trade = {
   price: number
   amount: number
   time: string
   side: "buy" | "sell"
+  key: string
 }
 
-const marketStatusData: {
-  pair: { base: string; quote: string }
-  marketTrades: Trade[]
-  myTrades: Trade[]
-} = {
-  pair: { base: "ETH", quote: "USDT" },
-  marketTrades: [
-    { price: 2031.87, amount: 0.0491, time: "17:48:07", side: "buy" },
-    { price: 2031.87, amount: 0.0491, time: "17:48:06", side: "buy" },
-    { price: 2031.87, amount: 0.0491, time: "17:48:06", side: "buy" },
-    { price: 2031.87, amount: 19560, time: "17:48:06", side: "buy" },
-    { price: 2031.86, amount: 2070, time: "17:48:06", side: "sell" },
-    { price: 2031.86, amount: 0.2453, time: "17:48:05", side: "sell" },
-    { price: 2031.87, amount: 0.0491, time: "17:48:05", side: "buy" },
-    { price: 2031.87, amount: 0.9284, time: "17:48:05", side: "buy" },
-    { price: 2031.87, amount: 0.2656, time: "17:48:05", side: "sell" },
-    { price: 2031.87, amount: 0.9311, time: "17:48:04", side: "sell" },
-    { price: 2031.87, amount: 0.9284, time: "17:48:04", side: "sell" },
-    { price: 2031.87, amount: 4860, time: "17:48:03", side: "sell" },
-    { price: 2031.87, amount: 0.4642, time: "17:48:02", side: "sell" },
-    { price: 2031.87, amount: 0.4642, time: "17:48:02", side: "sell" },
-    { price: 2031.87, amount: 0.3132, time: "17:48:01", side: "buy" },
-    { price: 2031.87, amount: 28050, time: "17:48:00", side: "buy" },
-    { price: 2031.87, amount: 14630, time: "17:47:59", side: "sell" },
-  ],
-  myTrades: [],
-}
+const PAIR = { base: "ETH", quote: "USDT" }
 
 function formatPrice(p: number) {
   return p.toLocaleString("en-US", {
@@ -55,6 +35,26 @@ function formatAmount(a: number) {
     minimumFractionDigits: 1,
     maximumFractionDigits: 4,
   })
+}
+
+function formatTime(ms: number) {
+  const d = new Date(ms)
+  return d.toLocaleTimeString("en-US", {
+    hour12: false,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  })
+}
+
+function toTrade(t: LiveTrade): Trade {
+  return {
+    price: t.price,
+    amount: t.quantity,
+    time: formatTime(t.time),
+    side: t.side,
+    key: `${t.id}`,
+  }
 }
 
 function TradeRow({ trade }: { trade: Trade }) {
@@ -80,7 +80,7 @@ function TradesPanel({
   pair: { base: string; quote: string }
 }) {
   return (
-    <div className="flex h-1/2 min-h-0 flex-col">
+    <div className="flex h-[300px] min-h-0 flex-col">
       <div className="flex items-center justify-between px-3 pt-3 pb-2">
         <div className="relative">
           <div className="text-sm font-semibold">{title}</div>
@@ -103,7 +103,7 @@ function TradesPanel({
             No trades yet
           </div>
         ) : (
-          trades.map((t, i) => <TradeRow key={i} trade={t} />)
+          trades.map((t) => <TradeRow key={t.key} trade={t} />)
         )}
       </div>
     </div>
@@ -111,12 +111,15 @@ function TradesPanel({
 }
 
 export function MarketStatus() {
-  const d = marketStatusData
+  const data = useEthUsdtMarketData()
+  const marketTrades: Trade[] = data.trades.map(toTrade)
+  const myTrades: Trade[] = []
+
   return (
-    <section className="flex h-full flex-col border-l">
-      <TradesPanel title="Market Trades" trades={d.marketTrades} pair={d.pair} />
+    <section className="flex flex-col border-l">
+      <TradesPanel title="Market Trades" trades={marketTrades} pair={PAIR} />
       <div className="border-t" />
-      <TradesPanel title="My Trades" trades={d.myTrades} pair={d.pair} />
+      <TradesPanel title="My Trades" trades={myTrades} pair={PAIR} />
     </section>
   )
 }

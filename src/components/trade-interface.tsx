@@ -1,7 +1,9 @@
+import { useState } from "react"
 import {
   ChevronDown,
   ChevronUp,
   CreditCard,
+  Info,
   Percent,
   Repeat,
 } from "lucide-react"
@@ -9,6 +11,7 @@ import {
 import { Chart } from "@/components/chart"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import {
   InputGroup,
   InputGroupAddon,
@@ -290,15 +293,125 @@ function SellColumn({
   )
 }
 
-export function TradeInterface() {
+function TradeInterfaceMobile() {
+  const d = tradeData
+  const [side, setSide] = useState<"buy" | "sell">("buy")
+  const sideColor = side === "buy" ? "#2ebd85" : "#f6465d"
+  const sideData = side === "buy" ? d.buy : d.sell
+  const maxLabel = side === "buy" ? "Max Buy" : "Max Sell"
+
+  return (
+    <section className="flex h-full flex-col gap-2 border-l p-2">
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          onClick={() => setSide("buy")}
+          className={cn(
+            "h-10 text-base font-medium",
+            side === "buy"
+              ? "bg-[#2ebd85] text-white hover:bg-[#2ebd85]/90"
+              : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
+          )}
+        >
+          Buy
+        </Button>
+        <Button
+          type="button"
+          onClick={() => setSide("sell")}
+          className={cn(
+            "h-10 text-base font-medium",
+            side === "sell"
+              ? "bg-[#f6465d] text-white hover:bg-[#f6465d]/90"
+              : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
+          )}
+        >
+          Sell
+        </Button>
+      </div>
+
+      <Select defaultValue="Market">
+        <SelectTrigger className="relative h-10 w-full">
+          <Info className="size-4 shrink-0 text-muted-foreground" />
+          <SelectValue className="flex-1! text-center" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="Market">Market</SelectItem>
+          <SelectItem value="Limit">Limit</SelectItem>
+          <SelectItem value="Stop Limit">Stop Limit</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Input
+        placeholder="Market Price"
+        disabled
+        className="h-10 text-center"
+      />
+
+      <InputGroup className="h-10 ">
+        <InputGroupInput placeholder="Amount" />
+        <InputGroupAddon align="inline-end">
+          <span className="text-foreground">{d.pair.base}</span>
+          <ChevronDown className="size-3 text-muted-foreground" />
+        </InputGroupAddon>
+      </InputGroup>
+
+      <div className="py-1">
+        <PercentSlider />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Checkbox id="mobile-slippage" />
+        <Label
+          htmlFor="mobile-slippage"
+          className="underline decoration-dotted underline-offset-2"
+        >
+          Slippage Tolerance
+        </Label>
+      </div>
+
+      <div className="flex flex-col gap-1 text-xs">
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            className="flex items-center gap-1 text-muted-foreground underline decoration-dotted underline-offset-2"
+          >
+            Avbl <ChevronDown className="size-3" />
+          </button>
+          <div className="flex items-center gap-1.5">
+            <span className="tabular-nums">
+              {sideData.available.toFixed(8)} {sideData.availableAsset}
+            </span>
+            <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-yellow-500 text-[10px] font-bold text-black">
+              +
+            </span>
+          </div>
+        </div>
+        <StatRow
+          label={maxLabel}
+          value={`${sideData.maxAmount} ${sideData.maxAsset}`}
+        />
+        <StatRow label="Est. Fee" value={`-- ${d.pair.base}`} />
+      </div>
+
+      <Button
+        className="mt-auto h-12 w-full  text-base font-medium text-white hover:opacity-90"
+        style={{ backgroundColor: sideColor }}
+      >
+        {side === "buy" ? "Buy" : "Sell"} {d.pair.base}
+      </Button>
+    </section>
+  )
+}
+
+function TradeInterfaceDesktop() {
   const d = tradeData
   return (
-    <section className="flex h-full flex-col">
-      <div className="flex h-1/2 min-h-0 flex-col border-b">
+    <section className="flex flex-col">
+      <div className="flex h-[500px] min-h-0 flex-col border-b">
         <Chart />
       </div>
 
-      <div className="flex h-1/2 min-h-0 flex-col p-3">
+      <div className="flex flex-col p-3">
         <div className="flex items-center justify-between pb-3">
           <Tabs defaultValue="Spot">
             <TabsList variant="line" className="gap-3">
@@ -308,7 +421,7 @@ export function TradeInterface() {
                   value={t}
                   className={cn(
                     "px-1 text-sm",
-                    "data-active:text-foreground after:!bg-yellow-500"
+                    "data-active:text-foreground after:bg-yellow-500!"
                   )}
                 >
                   {t}
@@ -334,7 +447,7 @@ export function TradeInterface() {
                   value={t}
                   className={cn(
                     "px-1",
-                    "data-active:text-foreground after:!bg-yellow-500"
+                    "data-active:text-foreground after:bg-yellow-500!"
                   )}
                 >
                   {t}
@@ -370,6 +483,19 @@ export function TradeInterface() {
         </div>
       </div>
     </section>
+  )
+}
+
+export function TradeInterface() {
+  return (
+    <>
+      <div className="h-full md:hidden">
+        <TradeInterfaceMobile />
+      </div>
+      <div className="hidden md:block">
+        <TradeInterfaceDesktop />
+      </div>
+    </>
   )
 }
 

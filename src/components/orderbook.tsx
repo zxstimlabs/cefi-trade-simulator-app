@@ -1,63 +1,13 @@
-import { ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, ChevronDown, ChevronRight, MoreHorizontal } from "lucide-react"
+
+import { useEthUsdtMarketData, type LiveOrderRow } from "@/hooks/use-eth-usdt-market-data"
 
 type OrderRow = { price: number; amount: number }
 
-const orderbookData: {
-  pair: { base: string; quote: string }
-  tickSize: number
-  asks: OrderRow[]
-  bids: OrderRow[]
-  midPrice: number
-  midPriceUsd: number
-  midPriceDirection: "up" | "down"
-  buyRatio: number
-  sellRatio: number
-} = {
+const orderbookStaticData = {
   pair: { base: "ETH", quote: "USDT" },
   tickSize: 0.01,
-  asks: [
-    { price: 2031.62, amount: 0.0885 },
-    { price: 2031.61, amount: 2.8055 },
-    { price: 2031.6, amount: 0.0104 },
-    { price: 2031.59, amount: 4.338 },
-    { price: 2031.58, amount: 3.05 },
-    { price: 2031.57, amount: 0.035 },
-    { price: 2031.56, amount: 1.1197 },
-    { price: 2031.55, amount: 21.8039 },
-    { price: 2031.54, amount: 9.4563 },
-    { price: 2031.53, amount: 14.4161 },
-    { price: 2031.52, amount: 0.0103 },
-    { price: 2031.51, amount: 0.3795 },
-    { price: 2031.5, amount: 0.611 },
-    { price: 2031.49, amount: 0.0077 },
-    { price: 2031.48, amount: 0.5555 },
-    { price: 2031.47, amount: 11.4049 },
-    { price: 2031.46, amount: 73.5803 },
-  ],
-  bids: [
-    { price: 2031.45, amount: 29.2864 },
-    { price: 2031.44, amount: 0.0153 },
-    { price: 2031.43, amount: 0.0153 },
-    { price: 2031.42, amount: 66.6432 },
-    { price: 2031.41, amount: 0.0052 },
-    { price: 2031.4, amount: 0.0102 },
-    { price: 2031.39, amount: 0.0052 },
-    { price: 2031.38, amount: 0.0141 },
-    { price: 2031.37, amount: 0.0152 },
-    { price: 2031.36, amount: 0.1142 },
-    { price: 2031.34, amount: 0.0025 },
-    { price: 2031.32, amount: 0.0189 },
-    { price: 2031.31, amount: 0.3453 },
-    { price: 2031.3, amount: 0.0024 },
-    { price: 2031.29, amount: 0.324 },
-    { price: 2031.27, amount: 4.4458 },
-    { price: 2031.26, amount: 2.8626 },
-  ],
-  midPrice: 2031.46,
-  midPriceUsd: 2031.46,
-  midPriceDirection: "up",
-  buyRatio: 42.29,
-  sellRatio: 57.7,
+  marginEnabled: false,
 }
 
 const ASK_COLOR = "#f6465d"
@@ -92,6 +42,43 @@ function formatTotal(t: number) {
   })
 }
 
+function toRow([price, amount]: LiveOrderRow): OrderRow {
+  return { price, amount }
+}
+
+function useDerivedOrderbook() {
+  const data = useEthUsdtMarketData()
+  const ob = data.orderbook
+  // Binance: bids descending, asks ascending. We display asks descending (lowest near mid at bottom).
+  const asks: OrderRow[] = ob ? [...ob.asks].reverse().map(toRow) : []
+  const bids: OrderRow[] = ob ? ob.bids.map(toRow) : []
+
+  const bidVolume = bids.reduce((s, r) => s + r.amount, 0)
+  const askVolume = asks.reduce((s, r) => s + r.amount, 0)
+  const total = bidVolume + askVolume
+  const buyRatio = total > 0 ? (bidVolume / total) * 100 : 0
+  const sellRatio = total > 0 ? 100 - buyRatio : 0
+
+  const bestAsk = asks.length ? asks[asks.length - 1].price : null
+  const bestBid = bids.length ? bids[0].price : null
+  const midFromBook =
+    bestAsk !== null && bestBid !== null ? (bestAsk + bestBid) / 2 : null
+  const midPrice = data.lastTradePrice ?? midFromBook ?? 0
+
+  const allAmounts = [...asks, ...bids].map((r) => r.amount)
+  const maxAmount = allAmounts.length ? Math.max(...allAmounts) : 1
+
+  return {
+    asks,
+    bids,
+    buyRatio,
+    sellRatio,
+    midPrice,
+    maxAmount,
+    hasData: !!ob,
+  }
+}
+
 function ViewModeIcon({ variant }: { variant: "both" | "bids" | "asks" }) {
   const ask = ASK_COLOR
   const bid = BID_COLOR
@@ -102,13 +89,35 @@ function ViewModeIcon({ variant }: { variant: "both" | "bids" | "asks" }) {
   return (
     <div className="flex h-4 w-4 flex-col justify-between gap-[1px]">
       {bars.map((c, i) => (
-        <div key={i} className="h-[2px] w-full rounded-sm" style={{ backgroundColor: c }} />
+        <div
+          key={i}
+          className="h-[2px] w-full rounded-sm"
+          style={{ backgroundColor: c }}
+        />
       ))}
     </div>
   )
 }
 
-function Row({
+function MiniSwitch({ checked }: { checked: boolean }) {
+  return (
+    <span
+      role="switch"
+      aria-checked={checked}
+      className={`relative inline-block h-3.5 w-6 rounded-full transition-colors ${
+        checked ? "bg-yellow-500" : "bg-muted-foreground/30"
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white transition-transform ${
+          checked ? "left-3" : "left-0.5"
+        }`}
+      />
+    </span>
+  )
+}
+
+function DesktopRow({
   row,
   total,
   depth,
@@ -120,7 +129,8 @@ function Row({
   side: "ask" | "bid"
 }) {
   const color = side === "ask" ? "text-[#f6465d]" : "text-[#2ebd85]"
-  const bg = side === "ask" ? "rgba(246, 70, 93, 0.15)" : "rgba(46, 189, 133, 0.15)"
+  const bg =
+    side === "ask" ? "rgba(246, 70, 93, 0.15)" : "rgba(46, 189, 133, 0.15)"
   return (
     <div className="relative grid grid-cols-3 px-3 py-[2px] text-xs leading-tight">
       <div
@@ -128,21 +138,48 @@ function Row({
         style={{ width: `${depth * 100}%`, backgroundColor: bg }}
       />
       <div className={`relative ${color}`}>{formatPrice(row.price)}</div>
-      <div className="relative text-right tabular-nums">{formatAmount(row.amount)}</div>
+      <div className="relative text-right tabular-nums">
+        {formatAmount(row.amount)}
+      </div>
       <div className="relative text-right tabular-nums">{formatTotal(total)}</div>
     </div>
   )
 }
 
-export function Orderbook() {
-  const d = orderbookData
-  const allAmounts = [...d.asks, ...d.bids].map((r) => r.amount)
-  const maxAmount = Math.max(...allAmounts)
-  const midColor =
-    d.midPriceDirection === "up" ? "text-[#2ebd85]" : "text-[#f6465d]"
+function MobileRow({
+  row,
+  depth,
+  side,
+}: {
+  row: OrderRow
+  depth: number
+  side: "ask" | "bid"
+}) {
+  const color = side === "ask" ? "text-[#f6465d]" : "text-[#2ebd85]"
+  const bg =
+    side === "ask" ? "rgba(246, 70, 93, 0.18)" : "rgba(46, 189, 133, 0.18)"
+  return (
+    <div className="relative grid grid-cols-2 px-2 py-[1px] text-xs leading-tight">
+      <div
+        className="absolute inset-y-0 right-0"
+        style={{ width: `${depth * 100}%`, backgroundColor: bg }}
+      />
+      <div className={`relative ${color}`}>{formatPrice(row.price)}</div>
+      <div className="relative text-right tabular-nums">
+        {formatAmount(row.amount)}
+      </div>
+    </div>
+  )
+}
+
+function OrderbookDesktop() {
+  const s = orderbookStaticData
+  const { asks, bids, buyRatio, sellRatio, midPrice, maxAmount } =
+    useDerivedOrderbook()
+  const midColor = "text-[#2ebd85]"
 
   return (
-    <section className="flex h-full flex-col border-r">
+    <section className="flex flex-col border-r">
       <div className="flex items-center justify-between px-3 py-3">
         <div className="text-sm font-semibold">Order Book</div>
         <button className="text-muted-foreground" aria-label="More">
@@ -157,23 +194,23 @@ export function Orderbook() {
           <ViewModeIcon variant="asks" />
         </div>
         <button className="flex items-center gap-1 text-xs text-foreground">
-          {d.tickSize.toFixed(2)}
+          {s.tickSize.toFixed(2)}
           <ChevronDown className="h-3 w-3" />
         </button>
       </div>
 
       <div className="grid grid-cols-3 px-3 pb-1 text-xs text-muted-foreground">
-        <div>Price ({d.pair.quote})</div>
-        <div className="text-right">Amount ({d.pair.base})</div>
+        <div>Price ({s.pair.quote})</div>
+        <div className="text-right">Amount ({s.pair.base})</div>
         <div className="text-right">Total</div>
       </div>
 
       <div className="flex flex-col">
-        {d.asks.map((row) => {
+        {asks.map((row) => {
           const total = row.price * row.amount
           const depth = row.amount / maxAmount
           return (
-            <Row
+            <DesktopRow
               key={`ask-${row.price}`}
               row={row}
               total={total}
@@ -187,24 +224,22 @@ export function Orderbook() {
       <div className="flex items-center justify-between px-3 py-2">
         <div className="flex items-baseline gap-2">
           <span className={`text-xl font-semibold ${midColor}`}>
-            {formatPrice(d.midPrice)}
+            {formatPrice(midPrice)}
           </span>
-          <span className={midColor}>
-            {d.midPriceDirection === "up" ? "↑" : "↓"}
-          </span>
+          <span className={midColor}>↑</span>
           <span className="text-xs text-muted-foreground">
-            ${formatPrice(d.midPriceUsd)}
+            ${formatPrice(midPrice)}
           </span>
         </div>
         <ChevronRight className="h-4 w-4 text-muted-foreground" />
       </div>
 
       <div className="flex flex-col">
-        {d.bids.map((row) => {
+        {bids.map((row) => {
           const total = row.price * row.amount
           const depth = row.amount / maxAmount
           return (
-            <Row
+            <DesktopRow
               key={`bid-${row.price}`}
               row={row}
               total={total}
@@ -215,27 +250,143 @@ export function Orderbook() {
         })}
       </div>
 
-      <div className="mt-auto flex items-center gap-2 px-3 py-2 text-xs">
+      <div className="flex items-center gap-2 px-3 py-2 text-xs">
         <span className="text-[#2ebd85]">B</span>
         <span className="text-[#2ebd85] tabular-nums">
-          {d.buyRatio.toFixed(2)}%
+          {buyRatio.toFixed(2)}%
         </span>
         <div className="flex h-1.5 flex-1 overflow-hidden rounded-sm">
           <div
             className="h-full"
-            style={{ width: `${d.buyRatio}%`, backgroundColor: BID_COLOR }}
+            style={{ width: `${buyRatio}%`, backgroundColor: BID_COLOR }}
           />
           <div
             className="h-full"
-            style={{ width: `${d.sellRatio}%`, backgroundColor: ASK_COLOR }}
+            style={{ width: `${sellRatio}%`, backgroundColor: ASK_COLOR }}
           />
         </div>
         <span className="text-[#f6465d] tabular-nums">
-          {d.sellRatio.toFixed(2)}%
+          {sellRatio.toFixed(2)}%
         </span>
         <span className="text-[#f6465d]">S</span>
       </div>
     </section>
+  )
+}
+
+function OrderbookMobile() {
+  const s = orderbookStaticData
+  const { asks, bids, buyRatio, sellRatio, midPrice } = useDerivedOrderbook()
+  const visibleAsks = asks.slice(-12)
+  const visibleBids = bids.slice(0, 12)
+  const visibleAmounts = [...visibleAsks, ...visibleBids].map((r) => r.amount)
+  const visibleMax = visibleAmounts.length ? Math.max(...visibleAmounts) : 1
+  const midColor = "text-[#2ebd85]"
+
+  return (
+    <section className="flex h-full flex-col">
+      <div className="flex items-center justify-between px-2 pt-2 pb-1">
+        <button
+          type="button"
+          className="flex items-center gap-1.5 text-xs"
+          aria-label="Toggle margin"
+        >
+          <span className="font-medium">Margin</span>
+          <MiniSwitch checked={s.marginEnabled} />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 px-2 pb-1 text-[10px] leading-tight text-muted-foreground">
+        <div>
+          Price
+          <br />({s.pair.quote})
+        </div>
+        <div className="flex items-start justify-end gap-1 text-right">
+          <span>
+            Amount
+            <br />({s.pair.base})
+          </span>
+          <ArrowUpDown className="size-3" />
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        {visibleAsks.map((row) => (
+          <MobileRow
+            key={`ask-m-${row.price}`}
+            row={row}
+            depth={row.amount / visibleMax}
+            side="ask"
+          />
+        ))}
+      </div>
+
+      <div className="flex flex-col items-center justify-center px-2 py-2">
+        <div className={`text-lg font-bold leading-tight ${midColor}`}>
+          {formatPrice(midPrice)}
+        </div>
+        <div className="text-[11px] leading-tight text-muted-foreground">
+          ≈ ${formatPrice(midPrice)}
+        </div>
+      </div>
+
+      <div className="flex flex-col">
+        {visibleBids.map((row) => (
+          <MobileRow
+            key={`bid-m-${row.price}`}
+            row={row}
+            depth={row.amount / visibleMax}
+            side="bid"
+          />
+        ))}
+      </div>
+
+      <div className="mt-auto flex flex-col gap-2 px-2 pt-2 pb-2">
+        <div className="flex items-center gap-2 text-[11px]">
+          <span className="text-[#2ebd85] tabular-nums">
+            {buyRatio.toFixed(2)}%
+          </span>
+          <div className="flex h-1.5 flex-1 overflow-hidden rounded-sm">
+            <div
+              className="h-full"
+              style={{ width: `${buyRatio}%`, backgroundColor: BID_COLOR }}
+            />
+            <div
+              className="h-full"
+              style={{ width: `${sellRatio}%`, backgroundColor: ASK_COLOR }}
+            />
+          </div>
+          <span className="text-[#f6465d] tabular-nums">
+            {sellRatio.toFixed(2)}%
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <button className="flex items-center gap-1 text-xs">
+            {s.tickSize.toFixed(2)}
+            <ChevronDown className="size-3" />
+          </button>
+          <div className="flex items-center gap-1.5">
+            <ViewModeIcon variant="both" />
+            <ViewModeIcon variant="bids" />
+            <ViewModeIcon variant="asks" />
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export function Orderbook() {
+  return (
+    <>
+      <div className="h-full md:hidden">
+        <OrderbookMobile />
+      </div>
+      <div className="hidden md:block">
+        <OrderbookDesktop />
+      </div>
+    </>
   )
 }
 
