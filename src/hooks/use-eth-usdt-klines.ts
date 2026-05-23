@@ -5,6 +5,12 @@ import type { CandlestickData, UTCTimestamp } from "lightweight-charts"
 
 import { getRestClient, getWsClient } from "@/lib/binance-clients"
 
+type EventListener = (data: WsFormattedMessage) => void
+type Emitter = {
+  on: (event: string, listener: EventListener) => unknown
+  removeListener: (event: string, listener: EventListener) => unknown
+}
+
 const SYMBOL = "ETHUSDT"
 const HISTORY_LIMIT = 500
 
@@ -57,11 +63,13 @@ function upsert(candles: Candle[], next: Candle): Candle[] {
 
 export function useEthUsdtKlines(interval: KlineInterval) {
   const [candles, setCandles] = useState<Candle[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loadedInterval, setLoadedInterval] = useState<KlineInterval | null>(
+    null
+  )
+  const loading = loadedInterval !== interval
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
 
     const rest = getRestClient()
     rest
@@ -69,18 +77,18 @@ export function useEthUsdtKlines(interval: KlineInterval) {
       .then((rows) => {
         if (cancelled) return
         setCandles(rows.map(restKlineToCandle))
-        setLoading(false)
+        setLoadedInterval(interval)
       })
       .catch((err) => {
         console.error("[binance rest] getKlines failed", err)
-        if (!cancelled) setLoading(false)
       })
 
     const ws = getWsClient()
+    const emitter = ws as unknown as Emitter
     const topic = `${SYMBOL.toLowerCase()}@kline_${interval}`
     ws.subscribe([topic], "main")
 
-    const handler = (data: WsFormattedMessage) => {
+    const handler: EventListener = (data) => {
       if (cancelled) return
       if (!isWsFormattedKline(data)) return
       if (data.symbol !== SYMBOL) return
@@ -88,11 +96,11 @@ export function useEthUsdtKlines(interval: KlineInterval) {
       const next = wsKlineToCandle(data.kline)
       setCandles((prev) => upsert(prev, next))
     }
-    ws.on("formattedMessage", handler)
+    emitter.on("formattedMessage", handler)
 
     return () => {
       cancelled = true
-      ws.off("formattedMessage", handler)
+      emitter.removeListener("formattedMessage", handler)
       ws.unsubscribe([topic], "main")
     }
   }, [interval])
