@@ -1,5 +1,6 @@
 import { useEffect, useSyncExternalStore } from "react"
 import {
+  isWsFormatted24hrTicker,
   isWsFormattedTrade,
   isWsPartialBookDepthEventFormatted,
 } from "binance"
@@ -23,10 +24,21 @@ export type LiveTrade = {
   side: "buy" | "sell"
 }
 
+export type LiveTicker = {
+  price: number
+  priceChange: number
+  priceChangePct: number
+  high: number
+  low: number
+  volumeBase: number
+  volumeQuote: number
+}
+
 export type LiveMarketData = {
   orderbook: LiveOrderbook | null
   trades: LiveTrade[]
   lastTradePrice: number | null
+  ticker: LiveTicker | null
 }
 
 const SYMBOL = "ETHUSDT"
@@ -36,6 +48,7 @@ let state: LiveMarketData = {
   orderbook: null,
   trades: [],
   lastTradePrice: null,
+  ticker: null,
 }
 
 const listeners = new Set<() => void>()
@@ -77,11 +90,28 @@ function ensureSubscribed() {
         lastTradePrice: data.price,
       }
       emit()
+      return
+    }
+    if (isWsFormatted24hrTicker(data) && data.symbol === SYMBOL) {
+      state = {
+        ...state,
+        ticker: {
+          price: data.currentClose,
+          priceChange: data.priceChange,
+          priceChangePct: data.priceChangePercent,
+          high: data.high,
+          low: data.low,
+          volumeBase: data.baseAssetVolume,
+          volumeQuote: data.quoteAssetVolume,
+        },
+      }
+      emit()
     }
   })
 
   c.subscribePartialBookDepths(SYMBOL, 20, 1000, "spot")
   c.subscribeSpotTrades(SYMBOL)
+  c.subscribeSpotSymbol24hrTicker(SYMBOL)
 }
 
 function subscribe(listener: () => void) {

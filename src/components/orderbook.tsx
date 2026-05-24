@@ -163,7 +163,7 @@ function OrderbookDesktop() {
   return (
     <section className="flex flex-col border-r">
       <div className="flex items-center justify-between px-3 py-3">
-        <div className="text-sm font-semibold">Order Book</div>
+        <div className="text-sm font-semibold">Sổ lệnh</div>
         <button className="text-muted-foreground" aria-label="More">
           <MoreHorizontal className="h-4 w-4" />
         </button>
@@ -182,9 +182,9 @@ function OrderbookDesktop() {
       </div>
 
       <div className="grid grid-cols-3 px-3 pb-1 text-xs text-muted-foreground">
-        <div>Price ({s.pair.quote})</div>
-        <div className="text-right">Amount ({s.pair.base})</div>
-        <div className="text-right">Total</div>
+        <div>Giá ({s.pair.quote})</div>
+        <div className="text-right">KL ({s.pair.base})</div>
+        <div className="text-right">Tổng</div>
       </div>
 
       <div className="flex flex-col">
@@ -233,7 +233,7 @@ function OrderbookDesktop() {
       </div>
 
       <div className="flex items-center gap-2 px-3 py-2 text-xs">
-        <span className="text-[#2ebd85]">B</span>
+        <span className="text-[#2ebd85]">Mua</span>
         <span className="text-[#2ebd85] tabular-nums">
           {buyRatio.toFixed(2)}%
         </span>
@@ -250,7 +250,7 @@ function OrderbookDesktop() {
         <span className="text-[#f6465d] tabular-nums">
           {sellRatio.toFixed(2)}%
         </span>
-        <span className="text-[#f6465d]">S</span>
+        <span className="text-[#f6465d]">Bán</span>
       </div>
     </section>
   )

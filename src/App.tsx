@@ -1,49 +1,44 @@
-import { useState } from "react"
-
 import { Header } from "@/components/header"
 import { Orderbook } from "@/components/orderbook"
 import { TradeInterface } from "@/components/trade-interface"
 import { MarketStatus } from "@/components/market-status"
 import { OrderManagement } from "@/components/order-management"
 import { Footer } from "@/components/footer"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 
 function MobileLeftPanel() {
-  const [tab, setTab] = useState<"orderbook" | "trades">("orderbook")
   return (
-    <div className="flex h-full flex-col">
+    <Tabs defaultValue="orderbook" className="flex h-full flex-col">
       <div className="px-2 pt-2 pb-1">
-        <Tabs
-          value={tab}
-          onValueChange={(v) => setTab(v as "orderbook" | "trades")}
-        >
-          <TabsList variant="line" className="gap-3">
-            <TabsTrigger
-              value="orderbook"
-              className={cn(
-                "px-1 text-xs",
-                "data-active:text-foreground after:!bg-yellow-500"
-              )}
-            >
-              Order Book
-            </TabsTrigger>
-            <TabsTrigger
-              value="trades"
-              className={cn(
-                "px-1 text-xs",
-                "data-active:text-foreground after:!bg-yellow-500"
-              )}
-            >
-              Trades
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <TabsList variant="line" className="gap-3">
+          <TabsTrigger
+            value="orderbook"
+            className={cn(
+              "px-1 text-xs",
+              "data-active:text-foreground after:bg-yellow-500!"
+            )}
+          >
+            Sổ lệnh
+          </TabsTrigger>
+          <TabsTrigger
+            value="trades"
+            className={cn(
+              "px-1 text-xs",
+              "data-active:text-foreground after:bg-yellow-500!"
+            )}
+          >
+            Bảng GD
+          </TabsTrigger>
+        </TabsList>
       </div>
-      <div className="flex-1 min-h-0">
-        {tab === "orderbook" ? <Orderbook /> : <MarketStatus />}
-      </div>
-    </div>
+      <TabsContent value="orderbook" className="flex-1 min-h-0">
+        <Orderbook />
+      </TabsContent>
+      <TabsContent value="trades" className="flex-1 min-h-0">
+        <MarketStatus />
+      </TabsContent>
+    </Tabs>
   )
 }
 
