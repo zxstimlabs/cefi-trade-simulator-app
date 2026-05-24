@@ -122,7 +122,7 @@ type SellData = typeof tradeData.sell
 function BuyColumn({
   data,
   pair,
-  counterparties,
+  // counterparties,
 }: {
   data: BuyData
   pair: { base: string; quote: string }
@@ -130,7 +130,7 @@ function BuyColumn({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-2">
+      {/* <div className="flex gap-2">
         <Select defaultValue={counterparties[0]}>
           <SelectTrigger className="h-8 flex-1">
             <SelectValue placeholder="Counterparty" />
@@ -146,10 +146,10 @@ function BuyColumn({
         <Button variant="outline" size="sm" className="h-8 px-3">
           BBO
         </Button>
-      </div>
+      </div> */}
 
       <InputGroup>
-        <InputGroupAddon align="inline-start">Amount</InputGroupAddon>
+        <InputGroupAddon align="inline-start">KL</InputGroupAddon>
         <InputGroupInput className="text-right tabular-nums" />
         <InputGroupAddon align="inline-end">
           <span className="text-foreground">{pair.base}</span>
@@ -160,7 +160,7 @@ function BuyColumn({
       <PercentSlider />
 
       <InputGroup>
-        <InputGroupAddon align="inline-start">Total</InputGroupAddon>
+        <InputGroupAddon align="inline-start">Tổng</InputGroupAddon>
         <InputGroupInput className="text-right tabular-nums" />
         <InputGroupAddon align="inline-end">
           <span className="text-muted-foreground/60">
@@ -193,14 +193,14 @@ function BuyColumn({
           </div>
         </div>
         <StatRow
-          label="Max Buy"
+          label="Mua TĐ"
           value={`${data.maxAmount} ${data.maxAsset}`}
         />
-        <StatRow label="Est. Fee" />
+        <StatRow label="Phí ước tính" />
       </div>
 
       <Button className="h-10 w-full rounded-none bg-[#2ebd85] text-sm font-medium text-white hover:bg-[#2ebd85]/90">
-        Buy {pair.base}
+        Mua {pair.base}
       </Button>
     </div>
   )
@@ -215,7 +215,7 @@ function SellColumn({
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex gap-2">
+      {/* <div className="flex gap-2">
         <InputGroup>
           <InputGroupAddon align="inline-start">Price</InputGroupAddon>
           <InputGroupInput
@@ -233,10 +233,10 @@ function SellColumn({
         <Button variant="outline" size="sm" className="h-8 px-3">
           BBO
         </Button>
-      </div>
+      </div> */}
 
       <InputGroup>
-        <InputGroupAddon align="inline-start">Amount</InputGroupAddon>
+        <InputGroupAddon align="inline-start">KL</InputGroupAddon>
         <InputGroupInput className="text-right tabular-nums" />
         <InputGroupAddon align="inline-end">
           <span className="text-foreground">{pair.base}</span>
@@ -247,11 +247,11 @@ function SellColumn({
       <PercentSlider />
 
       <InputGroup>
-        <InputGroupAddon align="inline-start">Total</InputGroupAddon>
+        <InputGroupAddon align="inline-start">Tổng</InputGroupAddon>
         <InputGroupInput className="text-right tabular-nums" />
         <InputGroupAddon align="inline-end">
           <span className="text-muted-foreground/60">
-            Minimum {data.minTotal}
+            Tối thiểu {data.minTotal}
           </span>
           <span className="text-foreground">{pair.quote}</span>
         </InputGroupAddon>
@@ -268,7 +268,7 @@ function SellColumn({
             type="button"
             className="flex items-center gap-1 text-muted-foreground underline decoration-dotted underline-offset-2"
           >
-            Avbl <ChevronDown className="size-3" />
+            Khả dụng <ChevronDown className="size-3" />
           </button>
           <div className="flex items-center gap-1.5">
             <span className="tabular-nums">
@@ -280,14 +280,14 @@ function SellColumn({
           </div>
         </div>
         <StatRow
-          label="Max Sell"
+          label="Bán TĐ"
           value={`${data.maxAmount} ${data.maxAsset}`}
         />
-        <StatRow label="Est. Fee" />
+        <StatRow label="Phí ước tính" />
       </div>
 
       <Button className="h-10 w-full rounded-none bg-[#f6465d] text-sm font-medium text-white hover:bg-[#f6465d]/90">
-        Sell {pair.base}
+        Bán {pair.base}
       </Button>
     </div>
   )

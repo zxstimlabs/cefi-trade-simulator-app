@@ -148,7 +148,7 @@ function OrderManagementDesktop() {
                 value={t.value}
                 className={cn(
                   "px-1 text-sm",
-                  "data-active:text-foreground after:!bg-yellow-500"
+                  "data-active:text-foreground after:bg-yellow-500!"
                 )}
               >
                 {t.label}
@@ -199,7 +199,7 @@ function OrderManagementMobile() {
                 value={t.value}
                 className={cn(
                   "px-1 text-sm",
-                  "data-active:text-foreground after:!bg-yellow-500"
+                  "data-active:text-foreground after:bg-yellow-500!"
                 )}
               >
                 {t.label}

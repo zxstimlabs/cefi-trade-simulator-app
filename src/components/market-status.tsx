@@ -92,15 +92,15 @@ function TradesPanel({
       </div>
 
       <div className="grid grid-cols-3 px-3 pb-1 text-xs text-muted-foreground">
-        <div>Price ({pair.quote})</div>
-        <div className="text-right">Amount ({pair.base})</div>
-        <div className="text-right">Time</div>
+        <div>Giá ({pair.quote})</div>
+        <div className="text-right">KL ({pair.base})</div>
+        <div className="text-right">Thời gian</div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
         {trades.length === 0 ? (
           <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            No trades yet
+            Chưa có giao dịch
           </div>
         ) : (
           trades.map((t) => <TradeRow key={t.key} trade={t} />)
@@ -117,9 +117,9 @@ export function MarketStatus() {
 
   return (
     <section className="flex flex-col border-l">
-      <TradesPanel title="Market Trades" trades={marketTrades} pair={PAIR} />
+      <TradesPanel title="Bảng GD" trades={marketTrades} pair={PAIR} />
       <div className="border-t" />
-      <TradesPanel title="My Trades" trades={myTrades} pair={PAIR} />
+      <TradesPanel title="GD của tôi" trades={myTrades} pair={PAIR} />
     </section>
   )
 }
