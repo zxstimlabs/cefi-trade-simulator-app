@@ -87,7 +87,7 @@ function ViewModeIcon({ variant }: { variant: "both" | "bids" | "asks" }) {
   if (variant === "bids") bars = [bid, bid, bid, bid]
   if (variant === "asks") bars = [ask, ask, ask, ask]
   return (
-    <div className="flex h-4 w-4 flex-col justify-between gap-[1px]">
+    <div className="flex h-4 w-4 flex-col justify-between gap-px">
       {bars.map((c, i) => (
         <div
           key={i}
@@ -159,7 +159,7 @@ function MobileRow({
   const bg =
     side === "ask" ? "rgba(246, 70, 93, 0.18)" : "rgba(46, 189, 133, 0.18)"
   return (
-    <div className="relative grid grid-cols-2 px-2 py-[1px] text-xs leading-tight">
+    <div className="relative grid grid-cols-2 px-2 py-px text-xs leading-tight">
       <div
         className="absolute inset-y-0 right-0"
         style={{ width: `${depth * 100}%`, backgroundColor: bg }}
