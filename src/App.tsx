@@ -1,16 +1,61 @@
+import { useState } from "react"
+
 import { Header } from "@/components/header"
 import { Orderbook } from "@/components/orderbook"
 import { TradeInterface } from "@/components/trade-interface"
 import { MarketStatus } from "@/components/market-status"
 import { OrderManagement } from "@/components/order-management"
 import { Footer } from "@/components/footer"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { cn } from "@/lib/utils"
+
+function MobileLeftPanel() {
+  const [tab, setTab] = useState<"orderbook" | "trades">("orderbook")
+  return (
+    <div className="flex h-full flex-col">
+      <div className="px-2 pt-2 pb-1">
+        <Tabs
+          value={tab}
+          onValueChange={(v) => setTab(v as "orderbook" | "trades")}
+        >
+          <TabsList variant="line" className="gap-3">
+            <TabsTrigger
+              value="orderbook"
+              className={cn(
+                "px-1 text-xs",
+                "data-active:text-foreground after:!bg-yellow-500"
+              )}
+            >
+              Order Book
+            </TabsTrigger>
+            <TabsTrigger
+              value="trades"
+              className={cn(
+                "px-1 text-xs",
+                "data-active:text-foreground after:!bg-yellow-500"
+              )}
+            >
+              Trades
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+      <div className="flex-1 min-h-0">
+        {tab === "orderbook" ? <Orderbook /> : <MarketStatus />}
+      </div>
+    </div>
+  )
+}
 
 export function App() {
   return (
     <div className="flex min-h-svh flex-col p-1 md:min-h-0 md:p-2">
       <Header />
       <main className="flex min-h-0 flex-2 md:flex-none md:items-start">
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 md:hidden">
+          <MobileLeftPanel />
+        </div>
+        <div className="hidden flex-1 min-w-0 md:block">
           <Orderbook />
         </div>
         <div className="flex-1 min-w-0 md:flex-2">

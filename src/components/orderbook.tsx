@@ -99,24 +99,6 @@ function ViewModeIcon({ variant }: { variant: "both" | "bids" | "asks" }) {
   )
 }
 
-function MiniSwitch({ checked }: { checked: boolean }) {
-  return (
-    <span
-      role="switch"
-      aria-checked={checked}
-      className={`relative inline-block h-3.5 w-6 rounded-full transition-colors ${
-        checked ? "bg-yellow-500" : "bg-muted-foreground/30"
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white transition-transform ${
-          checked ? "left-3" : "left-0.5"
-        }`}
-      />
-    </span>
-  )
-}
-
 function DesktopRow({
   row,
   total,
@@ -285,17 +267,6 @@ function OrderbookMobile() {
 
   return (
     <section className="flex h-full flex-col">
-      <div className="flex items-center justify-between px-2 pt-2 pb-1">
-        <button
-          type="button"
-          className="flex items-center gap-1.5 text-xs"
-          aria-label="Toggle margin"
-        >
-          <span className="font-medium">Margin</span>
-          <MiniSwitch checked={s.marginEnabled} />
-        </button>
-      </div>
-
       <div className="grid grid-cols-2 px-2 pb-1 text-[10px] leading-tight text-muted-foreground">
         <div>
           Price
