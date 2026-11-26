@@ -1,69 +1,53 @@
-import { Header } from "@/components/header"
-import { Orderbook } from "@/components/orderbook"
-import { TradeInterface } from "@/components/trade-interface"
-import { MarketStatus } from "@/components/market-status"
-import { OrderManagement } from "@/components/order-management"
+import { AccountPanel } from "@/components/account-panel"
+import { Chart } from "@/components/chart"
 import { Footer } from "@/components/footer"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { cn } from "@/lib/utils"
+import { Header } from "@/components/header"
+import { OrderForm } from "@/components/order-form"
+import { OrderManagement } from "@/components/order-management"
+import { Toaster } from "@/components/ui/sonner"
+import { useMediaQuery } from "@/hooks/use-media-query"
 
-function MobileLeftPanel() {
+// Desktop: chart with order history under it; account and order form down the
+// right-hand side.
+function DesktopMain() {
   return (
-    <Tabs defaultValue="orderbook" className="flex h-full flex-col">
-      <div className="px-2 pt-2 pb-1">
-        <TabsList variant="line" className="gap-3">
-          <TabsTrigger
-            value="orderbook"
-            className={cn(
-              "px-1 text-xs",
-              "data-active:text-foreground after:bg-yellow-500!"
-            )}
-          >
-            Sổ lệnh
-          </TabsTrigger>
-          <TabsTrigger
-            value="trades"
-            className={cn(
-              "px-1 text-xs",
-              "data-active:text-foreground after:bg-yellow-500!"
-            )}
-          >
-            Bảng GD
-          </TabsTrigger>
-        </TabsList>
+    <main className="grid min-h-0 flex-1 grid-cols-4 grid-rows-[minmax(0,1fr)_17rem] gap-2 py-2">
+      <div className="col-span-3 col-start-1 row-start-1 min-h-0 border border-muted-foreground/10">
+        <Chart />
       </div>
-      <TabsContent value="orderbook" className="flex-1 min-h-0">
-        <Orderbook />
-      </TabsContent>
-      <TabsContent value="trades" className="flex-1 min-h-0">
-        <MarketStatus />
-      </TabsContent>
-    </Tabs>
+      <div className="col-span-3 col-start-1 row-start-2 min-h-0">
+        <OrderManagement />
+      </div>
+      <aside className="col-start-4 row-span-2 row-start-1 flex min-h-0 flex-col gap-2 overflow-y-auto">
+        <AccountPanel />
+        <OrderForm />
+      </aside>
+    </main>
+  )
+}
+
+// Mobile: the order form first (the chart is in the header's drawer), then the
+// account, then orders.
+function MobileMain() {
+  return (
+    <main className="flex flex-1 flex-col gap-2 py-2">
+      <OrderForm />
+      <AccountPanel />
+      <div className="min-h-80">
+        <OrderManagement />
+      </div>
+    </main>
   )
 }
 
 export function App() {
+  const isDesktop = useMediaQuery("(min-width: 768px)")
   return (
-    <div className="flex min-h-svh flex-col p-1 md:min-h-0 md:p-2">
+    <div className="flex min-h-svh flex-col p-1 md:h-svh md:p-2">
       <Header />
-      <main className="flex min-h-0 flex-2 md:flex-none md:items-start">
-        <div className="flex-1 min-w-0 md:hidden">
-          <MobileLeftPanel />
-        </div>
-        <div className="hidden flex-1 min-w-0 md:block">
-          <Orderbook />
-        </div>
-        <div className="flex-1 min-w-0 md:flex-2">
-          <TradeInterface />
-        </div>
-        <div className="hidden min-w-0 md:block md:flex-1">
-          <MarketStatus />
-        </div>
-      </main>
-      <div className="flex min-h-0 flex-1 md:flex-none">
-        <OrderManagement />
-      </div>
+      {isDesktop ? <DesktopMain /> : <MobileMain />}
       <Footer />
+      <Toaster position="top-center" />
     </div>
   )
 }
