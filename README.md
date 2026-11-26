@@ -7,7 +7,7 @@ A simulated ETH/VND exchange: candlestick chart, account-number + PIN (or passke
 1. Run the CeFi API locally (Redis plus `CEFI_ENABLED=1 … bun run dev` in zxstim-api, see its README) with `CEFI_EXTRA_ORIGINS=http://localhost:5800`, so it accepts this app's origin.
 2. `bun install && bun run dev`, then open http://localhost:5800.
 
-`VITE_CEFI_API` sets the API's base URL (see `.env.example`). Without it, dev builds use `http://localhost:8002` and production builds `https://api.cefi.vn`. Cookies need the app and the API on the same site (cefi.vn / api.cefi.vn, or both on localhost).
+`VITE_CEFI_API` sets the API's base URL (see `.env.example`). Without it, dev builds use `http://localhost:8002` and production builds `https://api.cefi.vn`. Cookies need the app and the API on the same site (www.cefi.vn / api.cefi.vn, or both on localhost).
 
 ## shadcn/ui
 
