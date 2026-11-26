@@ -57,7 +57,7 @@ function Field({
   return (
     <div
       className={cn(
-        "flex items-center border border-muted-foreground/30 px-3 py-2 focus-within:border-yellow-500/70",
+        "flex items-center border border-muted-foreground/30 px-3 py-2 focus-within:border-ring",
         muted && "bg-muted/40",
       )}
     >
@@ -197,10 +197,10 @@ export function OrderForm() {
 
       <Tabs value={type} onValueChange={(v) => setType(v as OrderType)}>
         <TabsList variant="line" className="gap-4">
-          <TabsTrigger value="limit" className="px-1 text-xs data-active:text-foreground after:bg-yellow-500!">
+          <TabsTrigger value="limit" className="px-1 text-xs data-active:text-foreground">
             Giới hạn
           </TabsTrigger>
-          <TabsTrigger value="market" className="px-1 text-xs data-active:text-foreground after:bg-yellow-500!">
+          <TabsTrigger value="market" className="px-1 text-xs data-active:text-foreground">
             Thị trường
           </TabsTrigger>
         </TabsList>
@@ -251,7 +251,7 @@ export function OrderForm() {
               type="button"
               disabled={!user || available === undefined}
               onClick={() => setPercent(p)}
-              className="border border-muted-foreground/20 py-1 text-[10px] text-muted-foreground transition-colors hover:border-yellow-500/60 hover:text-foreground disabled:opacity-50"
+              className="border border-muted-foreground/20 py-1 text-[10px] text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground disabled:opacity-50"
             >
               {p}%
             </button>
@@ -266,7 +266,7 @@ export function OrderForm() {
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-yellow-500">Khả dụng</span>
+            <span className="text-muted-foreground">Khả dụng</span>
             <span className="tabular-nums">
               {!user ? (
                 "-"
@@ -280,7 +280,7 @@ export function OrderForm() {
             </span>
           </div>
           {estimate && estimate.filled < amountNum - 1e-9 && (
-            <p className="text-[10px] text-yellow-500">
+            <p className="text-[10px] text-muted-foreground">
               Sổ lệnh hiện chỉ đủ khớp khoảng {formatEth(floor4(estimate.filled))} ETH
             </p>
           )}

@@ -168,7 +168,7 @@ function CancelButton({ order }: { order: Order }) {
       type="button"
       disabled={cancel.isPending}
       onClick={() => cancel.mutate()}
-      className="inline-flex items-center gap-1 text-xs text-yellow-500 hover:text-yellow-400 disabled:opacity-50"
+      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
     >
       {cancel.isPending ? <LoaderCircle className="size-3 animate-spin" /> : <X className="size-3" />}
       Huỷ
@@ -266,7 +266,7 @@ export function OrderManagement() {
                 <TabsTrigger
                   key={t.value}
                   value={t.value}
-                  className="px-1 text-xs whitespace-nowrap data-active:text-foreground after:bg-yellow-500! md:text-sm"
+                  className="px-1 text-xs whitespace-nowrap data-active:text-foreground md:text-sm"
                 >
                   {t.label}
                 </TabsTrigger>
@@ -279,7 +279,7 @@ export function OrderManagement() {
             type="button"
             disabled={cancelAll.isPending}
             onClick={() => cancelAll.mutate()}
-            className="inline-flex shrink-0 items-center gap-1 text-xs text-yellow-500 hover:text-yellow-400 disabled:opacity-50"
+            className="inline-flex shrink-0 items-center gap-1 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
           >
             {cancelAll.isPending && <LoaderCircle className="size-3 animate-spin" />}
             Huỷ tất cả

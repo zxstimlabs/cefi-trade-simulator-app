@@ -33,9 +33,9 @@ function usePriceDirection(price: number | undefined) {
 export function FeedStatus({ compact = false }: { compact?: boolean }) {
   const { status, ageSec } = useFeedStatus()
   const dot = {
-    connecting: "bg-yellow-500 animate-pulse",
+    connecting: "bg-muted-foreground animate-pulse",
     live: "bg-[#2ebd85] animate-pulse",
-    lagging: "bg-yellow-500",
+    lagging: "bg-muted-foreground",
     down: "bg-[#f6465d]",
   }[status]
   const label = {
@@ -51,7 +51,7 @@ export function FeedStatus({ compact = false }: { compact?: boolean }) {
         <span
           className={cn(
             "text-xs",
-            status === "down" ? "text-[#f6465d]" : status === "lagging" ? "text-yellow-500" : "text-muted-foreground",
+            status === "down" ? "text-[#f6465d]" : "text-muted-foreground",
           )}
         >
           {label}
@@ -113,7 +113,7 @@ export function Header() {
           <div className="flex flex-col">
             <div className="text-lg leading-tight font-semibold">{PAIR}</div>
             {ticker ? (
-              <div className={cn("text-xs leading-tight tabular-nums md:hidden", changeColor)}>
+              <div className={cn("text-xs leading-tight tabular-nums lg:hidden", changeColor)}>
                 {formatVnd(ticker.last)} · {formatPct(ticker.changePct24h)}
               </div>
             ) : (
@@ -122,7 +122,7 @@ export function Header() {
           </div>
         </div>
 
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden items-center gap-6 lg:flex">
           {ticker ? (
             <>
               <div className={cn("text-xl leading-tight font-semibold tabular-nums transition-colors", priceColor)}>
@@ -148,10 +148,10 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-2">
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <FeedStatus />
         </div>
-        <div className="flex items-center gap-1 md:hidden">
+        <div className="flex items-center gap-1 lg:hidden">
           <FeedStatus compact />
           <ChartDrawer />
         </div>

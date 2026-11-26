@@ -1,17 +1,13 @@
-import { useMemo, useState } from "react"
-import {
-  CandlestickSeries,
-  Chart as LWChart,
-  TimeScale,
-  TimeScaleFitContentTrigger,
-} from "lightweight-charts-react-components"
+import { Component, useMemo, useState, type ReactNode } from "react"
+import { CandlestickSeries, Chart as LWChart } from "lightweight-charts-react-components"
 import type { CandlestickData, UTCTimestamp } from "lightweight-charts"
 import { useQuery } from "@tanstack/react-query"
 
+import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { api, MARKET, type MarketTrade } from "@/lib/api"
 import { useMarketSnapshot } from "@/hooks/use-market"
-import { cn, COLORS, formatVnd } from "@/lib/utils"
+import { COLORS, formatVnd } from "@/lib/utils"
 
 type Resolution = "1m" | "5m" | "15m" | "1h" | "4h" | "1d"
 
@@ -28,18 +24,35 @@ const INTERVALS: { value: Resolution; label: string; seconds: number }[] = [
 // reads in the viewer's time zone (Vietnam: +7 h), like the trade tables.
 const TZ_OFFSET = -new Date().getTimezoneOffset() * 60
 
+
 const chartOptions = {
   layout: {
     background: { color: "transparent" },
     textColor: "#9ca3af",
   },
   grid: {
-    vertLines: { color: "rgba(255, 255, 255, 0.06)" },
-    horzLines: { color: "rgba(255, 255, 255, 0.06)" },
+    vertLines: { color: "rgba(127, 127, 127, 0.08)" },
+    horzLines: { color: "rgba(127, 127, 127, 0.08)" },
   },
-  timeScale: { timeVisible: true, secondsVisible: false },
+  // A fixed bar width, latest bars on the right: a young market's few candles
+  // at 1h/4h/1D stay candle-sized instead of being stretched across the chart
+  // (what fitContent did: one giant bar).
+  timeScale: { timeVisible: true, secondsVisible: false, barSpacing: 8, minBarSpacing: 2, rightOffset: 4 },
   localization: { priceFormatter: (p: number) => formatVnd(p) },
   autoSize: true,
+}
+
+// Daily candles: dates on the time axis, not the (shifted) bucket time.
+const dailyChartOptions = { ...chartOptions, timeScale: { ...chartOptions.timeScale, timeVisible: false } }
+
+const seriesOptions = {
+  upColor: COLORS.green,
+  downColor: COLORS.red,
+  borderUpColor: COLORS.green,
+  borderDownColor: COLORS.red,
+  wickUpColor: COLORS.green,
+  wickDownColor: COLORS.red,
+  priceFormat: { type: "price" as const, precision: 0, minMove: 1 },
 }
 
 type Candle = CandlestickData<UTCTimestamp>
@@ -92,9 +105,11 @@ function useCandles(resolution: Resolution) {
     retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10_000),
   })
 
-  // Live: fold the snapshot's recent trades (newest first) on top, oldest first.
+  // Live: fold the snapshot's recent trades (newest first) on top, oldest
+  // first. Nothing until this resolution's history has loaded.
   const candles = useMemo(() => {
-    let next = seed ?? []
+    if (!seed) return []
+    let next = seed
     const trades = snapshot?.trades ?? []
     for (let i = trades.length - 1; i >= 0; i--) next = applyTrade(next, trades[i]!, bucketSeconds)
     return next
@@ -103,9 +118,51 @@ function useCandles(resolution: Resolution) {
   return { candles, isLoading, isError }
 }
 
+// A chart error (data lightweight-charts rejects) must never take the page
+// down with it: show a message instead, and start over on retry or on another
+// resolution.
+class ChartBoundary extends Component<
+  { resetKey: string; children: ReactNode },
+  { error: Error | null; attempt: number }
+> {
+  state = { error: null as Error | null, attempt: 0 }
+
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("[chart]", error)
+  }
+
+  componentDidUpdate(prev: { resetKey: string }) {
+    if (prev.resetKey !== this.props.resetKey && this.state.error) this.setState({ error: null })
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex h-full flex-col items-center justify-center gap-2 text-xs text-muted-foreground">
+          <span>Không hiển thị được biểu đồ.</span>
+          <Button variant="outline" size="sm" onClick={() => this.setState((s) => ({ error: null, attempt: s.attempt + 1 }))}>
+            Thử lại
+          </Button>
+        </div>
+      )
+    }
+    return (
+      <div key={this.state.attempt} className="h-full">
+        {this.props.children}
+      </div>
+    )
+  }
+}
+
 export function Chart() {
   const [resolution, setResolution] = useState<Resolution>("15m")
   const { candles, isLoading, isError } = useCandles(resolution)
+
+  const empty = !isLoading && !isError && candles.length === 0
 
   return (
     <div className="flex h-full flex-col p-3">
@@ -113,11 +170,7 @@ export function Chart() {
         <Tabs value={resolution} onValueChange={(v) => setResolution(v as Resolution)}>
           <TabsList variant="line" className="gap-3">
             {INTERVALS.map((t) => (
-              <TabsTrigger
-                key={t.value}
-                value={t.value}
-                className={cn("px-1 text-xs", "data-active:text-foreground after:bg-yellow-500!")}
-              >
+              <TabsTrigger key={t.value} value={t.value} className="px-1 text-xs data-active:text-foreground">
                 {t.label}
               </TabsTrigger>
             ))}
@@ -125,30 +178,28 @@ export function Chart() {
         </Tabs>
         {isLoading && <span className="text-[10px] text-muted-foreground">Đang tải…</span>}
         {isError && <span className="text-[10px] text-[#f6465d]">Không tải được biểu đồ</span>}
-        {!isLoading && !isError && candles.length === 0 && (
-          <span className="text-[10px] text-muted-foreground">Chưa có giao dịch</span>
-        )}
       </div>
 
-      <div className="mt-3 min-h-0 flex-1">
-        <LWChart options={chartOptions} containerProps={{ style: { width: "100%", height: "100%" } }}>
-          <CandlestickSeries
-            data={candles}
-            options={{
-              upColor: COLORS.green,
-              downColor: COLORS.red,
-              borderUpColor: COLORS.green,
-              borderDownColor: COLORS.red,
-              wickUpColor: COLORS.green,
-              wickDownColor: COLORS.red,
-              priceFormat: { type: "price", precision: 0, minMove: 1 },
-            }}
-            reactive
-          />
-          <TimeScale>
-            <TimeScaleFitContentTrigger deps={[resolution, candles.length === 0]} />
-          </TimeScale>
-        </LWChart>
+      <div className="relative mt-3 min-h-0 flex-1">
+        <ChartBoundary resetKey={resolution}>
+          {/* Keyed by resolution: each resolution gets a fresh chart, loaded
+              with setData and scrolled to its latest bars. Reusing one would
+              hand the series another resolution's older candles through
+              series.update(), which throws ("Cannot update oldest data") and
+              took the whole page down. */}
+          <LWChart
+            key={resolution}
+            options={resolution === "1d" ? dailyChartOptions : chartOptions}
+            containerProps={{ style: { width: "100%", height: "100%" } }}
+          >
+            <CandlestickSeries data={candles} options={seriesOptions} reactive />
+          </LWChart>
+        </ChartBoundary>
+        {empty && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+            Chưa có giao dịch ở khung thời gian này
+          </div>
+        )}
       </div>
     </div>
   )

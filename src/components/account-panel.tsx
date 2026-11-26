@@ -236,7 +236,7 @@ function NewAccountDialog({ accountNumber, onClose }: { accountNumber: string | 
           <span className="font-mono text-base tracking-wider">{accountNumber}</span>
           {accountNumber && <CopyButton text={accountNumber} label="Sao chép số tài khoản" />}
         </div>
-        <div className="flex gap-2 text-xs text-yellow-500">
+        <div className="flex gap-2 text-xs text-muted-foreground">
           <TriangleAlert className="size-4 shrink-0" />
           <span>Giữ bí mật số tài khoản như mật khẩu. Đừng chia sẻ nó công khai.</span>
         </div>
@@ -369,10 +369,10 @@ export function AccountPanel() {
     body = (
       <Tabs value={tab} onValueChange={(v) => setTab(v as string)}>
         <TabsList variant="line" className="gap-4">
-          <TabsTrigger value="sign-in" className="px-1 text-sm data-active:text-foreground after:bg-yellow-500!">
+          <TabsTrigger value="sign-in" className="px-1 text-sm data-active:text-foreground">
             Đăng nhập
           </TabsTrigger>
-          <TabsTrigger value="create" className="px-1 text-sm data-active:text-foreground after:bg-yellow-500!">
+          <TabsTrigger value="create" className="px-1 text-sm data-active:text-foreground">
             Mở tài khoản
           </TabsTrigger>
         </TabsList>

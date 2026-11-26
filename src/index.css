@@ -5,6 +5,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Scrollable without a visible scrollbar (the order book's two sides). */
+@utility no-scrollbar {
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
 @theme inline {
     --font-heading: var(--font-sans);
     --font-sans: 'Noto Sans Variable', sans-serif;
